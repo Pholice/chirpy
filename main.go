@@ -26,6 +26,7 @@ func main() {
 	serveMux.Handle("GET /api/healthz", http.HandlerFunc(apiCfg.healthz))
 	serveMux.Handle("GET /admin/metrics", http.HandlerFunc(apiCfg.metrics))
 	serveMux.Handle("GET /api/reset", http.HandlerFunc(apiCfg.reset))
+	serveMux.Handle("POST /api/chirps", http.HandlerFunc(apiCfg.createChirp))
 
 	server := http.Server{
 		Addr:    ":8080",
