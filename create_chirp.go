@@ -6,17 +6,7 @@ import (
 	"strings"
 )
 
-type RequestBody struct {
-	Body string `json:"body"`
-}
-
-type RequestEmail struct {
-	Email string `json:"email"`
-}
-
-// ResponseBody represents the structure of the outgoing response body.
-type Chirp struct {
-	Id   int    `json:"id"`
+type RequestChirp struct {
 	Body string `json:"body"`
 }
 
@@ -40,7 +30,7 @@ func filter(words []string) string {
 }
 
 func (cfg *apiConfig) createChirp(w http.ResponseWriter, r *http.Request) {
-	var reqBody RequestBody
+	var reqBody RequestChirp
 	if err := json.NewDecoder(r.Body).Decode(&reqBody); err != nil {
 		respondWithError(w, http.StatusBadRequest, "Invalid request body")
 		return

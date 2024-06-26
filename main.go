@@ -37,6 +37,7 @@ func main() {
 	serveMux.Handle("GET /api/reset", http.HandlerFunc(apiCfg.reset))
 	serveMux.Handle("POST /api/chirps", http.HandlerFunc(apiCfg.createChirp))
 	serveMux.Handle("POST /api/users", http.HandlerFunc(apiCfg.createUser))
+	serveMux.Handle("POST /api/login", http.HandlerFunc(apiCfg.login))
 	serveMux.Handle("GET /api/chirps/{chirpID}", http.HandlerFunc(apiCfg.getChirp))
 
 	server := http.Server{
