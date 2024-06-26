@@ -14,11 +14,7 @@ type DB struct {
 
 type DBStructure struct {
 	Chirps map[int]Chirp `json:"chirps"`
-}
-
-type Chirp struct {
-	ID   int    `json:"id"`
-	Body string `json:"body"`
+	Users  map[int]User  `json:"users"`
 }
 
 // NewDB creates a new database connection
@@ -35,7 +31,7 @@ func NewDB(path string) (*DB, error) {
 func (db *DB) ensureDB() error {
 	_, err := os.ReadFile(db.path)
 	if err != nil {
-		initialStructure := DBStructure{Chirps: make(map[int]Chirp)}
+		initialStructure := DBStructure{Chirps: make(map[int]Chirp), Users: make(map[int]User)}
 		db.writeDB(initialStructure)
 	}
 	return nil
@@ -67,39 +63,4 @@ func (db *DB) loadDB() (DBStructure, error) {
 		return dbStructure, err
 	}
 	return dbStructure, nil
-}
-
-func (db *DB) CreateChirp(body string) (Chirp, error) {
-	dbStructure, err := db.loadDB()
-	if err != nil {
-		return Chirp{}, err
-	}
-
-	id := len(dbStructure.Chirps) + 1
-	chirp := Chirp{
-		ID:   id,
-		Body: body,
-	}
-	dbStructure.Chirps[id] = chirp
-
-	err = db.writeDB(dbStructure)
-	if err != nil {
-		return Chirp{}, err
-	}
-
-	return chirp, nil
-}
-
-func (db *DB) GetChirps() ([]Chirp, error) {
-	dbStructure, err := db.loadDB()
-	if err != nil {
-		return nil, err
-	}
-
-	chirps := make([]Chirp, 0, len(dbStructure.Chirps))
-	for _, chirp := range dbStructure.Chirps {
-		chirps = append(chirps, chirp)
-	}
-
-	return chirps, nil
 }

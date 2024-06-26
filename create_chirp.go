@@ -10,6 +10,10 @@ type RequestBody struct {
 	Body string `json:"body"`
 }
 
+type RequestEmail struct {
+	Email string `json:"email"`
+}
+
 // ResponseBody represents the structure of the outgoing response body.
 type Chirp struct {
 	Id   int    `json:"id"`
@@ -47,7 +51,9 @@ func (cfg *apiConfig) createChirp(w http.ResponseWriter, r *http.Request) {
 	}
 
 	clean := filter(strings.Split(reqBody.Body, " "))
-	respBody := Chirp{Body: clean}
-
-	respondWithJSON(w, http.StatusOK, respBody)
+	chirp, err := cfg.DB.CreateChirp(clean)
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Couldn't create chirp")
+	}
+	respondWithJSON(w, http.StatusCreated, chirp)
 }
