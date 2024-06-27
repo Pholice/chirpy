@@ -12,26 +12,21 @@ type User struct {
 	Password []byte `json:"password"`
 }
 
-type ResponseUser struct {
-	ID    int    `json:"id"`
-	Email string `json:"email"`
-}
-
-func (db *DB) CreateUser(email string, password string) (ResponseUser, error) {
-	dbstructure, err := db.loadDB()
+func (db *DB) CreateUser(email string, password string) (User, error) {
+	dbStructure, err := db.loadDB()
 	if err != nil {
-		return ResponseUser{}, err
+		return User{}, err
 	}
 
-	id := len(dbstructure.Users) + 1
+	id := len(dbStructure.Users) + 1
 	hashedPW, err := bcrypt.GenerateFromPassword([]byte(password), 5)
 	if err != nil {
-		return ResponseUser{}, errors.New("COULD NOT ENCRYPT PASSWORD")
+		return User{}, errors.New("COULD NOT ENCRYPT PASSWORD")
 	}
 
-	for _, user := range dbstructure.Users {
+	for _, user := range dbStructure.Users {
 		if user.Email == email {
-			return ResponseUser{}, errors.New("USER ALREADY EXISTS")
+			return User{}, errors.New("USER ALREADY EXISTS")
 		}
 	}
 
@@ -40,13 +35,12 @@ func (db *DB) CreateUser(email string, password string) (ResponseUser, error) {
 		Email:    email,
 		Password: hashedPW,
 	}
-	dbstructure.Users[id] = newUser
-	err = db.writeDB(dbstructure)
+	dbStructure.Users[id] = newUser
+	err = db.writeDB(dbStructure)
 	if err != nil {
-		return ResponseUser{}, nil
+		return User{}, nil
 	}
-
-	return ResponseUser{ID: newUser.ID, Email: newUser.Email}, nil
+	return User{ID: newUser.ID, Email: newUser.Email}, nil
 }
 
 func (db *DB) GetUsers() ([]User, error) {
@@ -75,4 +69,23 @@ func (db *DB) GetUser(email string) (User, error) {
 	}
 	// user, ok := dbStructure.Users[id]
 	return User{}, errors.New("COULD NOT FIND USER")
+}
+
+func (db *DB) UpdateUser(id int, email string, password string) (User, error) {
+	dbStructure, err := db.loadDB()
+	if err != nil {
+		return User{}, errors.New("COULD NOT LOAD DB")
+	}
+	hashedPW, err := bcrypt.GenerateFromPassword([]byte(password), 5)
+	if err != nil {
+		return User{}, errors.New("COULD NOT ENCRYPT PASSWORD")
+	}
+	updatedUser := User{
+		ID:       id,
+		Email:    email,
+		Password: hashedPW,
+	}
+	dbStructure.Users[id] = updatedUser
+	db.writeDB(dbStructure)
+	return updatedUser, nil
 }
