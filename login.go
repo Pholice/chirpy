@@ -12,6 +12,7 @@ type ResponseUser struct {
 	Email   string `json:"email"`
 	Token   string `json:"token"`
 	Refresh string `json:"refresh_token"`
+	Red     bool   `json:"is_chirpy_red"`
 }
 
 func (cfg *apiConfig) login(w http.ResponseWriter, r *http.Request) {
@@ -44,6 +45,7 @@ func (cfg *apiConfig) login(w http.ResponseWriter, r *http.Request) {
 		Email:   user.Email,
 		Token:   token,
 		Refresh: user.RefreshToken,
+		Red:     user.Red,
 	}
 	respondWithJSON(w, http.StatusOK, response) // Correctly send the final response
 }

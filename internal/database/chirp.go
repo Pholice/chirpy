@@ -30,7 +30,7 @@ func (db *DB) CreateChirp(body string, author int) (Chirp, error) {
 	return newChirp, nil
 }
 
-func (db *DB) GetChirps() ([]Chirp, error) {
+func (db *DB) GetChirps(asc bool) ([]Chirp, error) {
 	dbStructure, err := db.loadDB()
 	if err != nil {
 		return nil, err
@@ -39,6 +39,37 @@ func (db *DB) GetChirps() ([]Chirp, error) {
 	chirps := make([]Chirp, 0, len(dbStructure.Chirps))
 	for _, chirp := range dbStructure.Chirps {
 		chirps = append(chirps, chirp)
+	}
+	if !asc {
+		reverseChirps := make([]Chirp, 0, len(chirps))
+		for i := len(chirps) - 1; i >= 0; i-- {
+			reverseChirps = append(reverseChirps, chirps[i])
+		}
+		return reverseChirps, nil
+	}
+
+	return chirps, nil
+}
+
+func (db *DB) GetChirpsAuthor(author int, asc bool) ([]Chirp, error) {
+	dbStructure, err := db.loadDB()
+	if err != nil {
+		return nil, err
+	}
+
+	chirps := make([]Chirp, 0, len(dbStructure.Chirps))
+	for _, chirp := range dbStructure.Chirps {
+		if chirp.AuthorID == author {
+			chirps = append(chirps, chirp)
+		}
+	}
+
+	if !asc {
+		reverseChirps := make([]Chirp, 0, len(chirps))
+		for i := len(chirps) - 1; i >= 0; i-- {
+			reverseChirps = append(reverseChirps, chirps[i])
+		}
+		return reverseChirps, nil
 	}
 
 	return chirps, nil

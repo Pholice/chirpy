@@ -13,6 +13,7 @@ type RequestUser struct {
 type payload struct {
 	ID    int    `json:"id"`
 	Email string `json:"email"`
+	Red   bool   `json:"is_chirpy_red"`
 }
 
 func (cfg *apiConfig) createUser(w http.ResponseWriter, r *http.Request) {
@@ -30,6 +31,7 @@ func (cfg *apiConfig) createUser(w http.ResponseWriter, r *http.Request) {
 	response := payload{
 		ID:    user.ID,
 		Email: user.Email,
+		Red:   user.Red,
 	}
 	respondWithJSON(w, http.StatusCreated, response)
 }

@@ -21,9 +21,30 @@ func (cfg *apiConfig) getChirp(w http.ResponseWriter, r *http.Request) {
 }
 
 func (cfg *apiConfig) getAllChirps(w http.ResponseWriter, r *http.Request) {
-	chirps, err := cfg.DB.GetChirps()
+	s := r.URL.Query().Get("author_id")
+	sort := r.URL.Query().Get("sort")
+	asc := true
+	if sort == "dec" {
+		asc = false
+	}
+	if s != "" {
+		sInt, err := strconv.Atoi(s)
+		if err != nil {
+			respondWithError(w, http.StatusNotFound, "Could not convert to int")
+			return
+		}
+		chirps, err := cfg.DB.GetChirpsAuthor(sInt, asc)
+		if err != nil {
+			respondWithError(w, http.StatusNotFound, "Could not find chirps")
+			return
+		}
+		respondWithJSON(w, http.StatusOK, chirps)
+		return
+	}
+	chirps, err := cfg.DB.GetChirps(asc)
 	if err != nil {
 		respondWithError(w, http.StatusNotFound, "Could not find chirps")
+		return
 	}
 	respondWithJSON(w, http.StatusOK, chirps)
 }

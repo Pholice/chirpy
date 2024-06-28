@@ -30,6 +30,7 @@ func (cfg *apiConfig) updateUser(w http.ResponseWriter, r *http.Request) {
 	response := payload{
 		ID:    user.ID,
 		Email: user.Email,
+		Red:   user.Red,
 	}
 	respondWithJSON(w, http.StatusOK, response)
 }

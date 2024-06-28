@@ -15,6 +15,7 @@ type User struct {
 	Password     []byte    `json:"password"`
 	ExpiresAt    time.Time `json:"expire"`
 	RefreshToken string    `json:"token"`
+	Red          bool      `json:"is_chirpy_red"`
 }
 
 func (db *DB) CreateUser(email string, password string) (User, error) {
@@ -44,6 +45,7 @@ func (db *DB) CreateUser(email string, password string) (User, error) {
 		Password:     hashedPW,
 		ExpiresAt:    expires,
 		RefreshToken: refresh,
+		Red:          false,
 	}
 	dbStructure.Users[id] = newUser
 
@@ -58,7 +60,7 @@ func (db *DB) CreateUser(email string, password string) (User, error) {
 	if err != nil {
 		return User{}, nil
 	}
-	return User{ID: newUser.ID, Email: newUser.Email, RefreshToken: refresh}, nil
+	return User{ID: newUser.ID, Email: newUser.Email, RefreshToken: refresh, Red: false}, nil
 }
 
 func (db *DB) GetUsers() ([]User, error) {
@@ -116,6 +118,28 @@ func (db *DB) UpdateUser(id int, email string, password string) (User, error) {
 		ID:       id,
 		Email:    email,
 		Password: hashedPW,
+	}
+	dbStructure.Users[id] = updatedUser
+	db.writeDB(dbStructure)
+	return updatedUser, nil
+}
+
+func (db *DB) UpdateUserType(id int) (User, error) {
+	dbStructure, err := db.loadDB()
+	if err != nil {
+		return User{}, errors.New("COULD NOT LOAD DB")
+	}
+	user, err := db.GetUserID(id)
+	if err != nil {
+		return User{}, errors.New("COULD NOT GET USER ID")
+	}
+	updatedUser := User{
+		ID:           user.ID,
+		Email:        user.Email,
+		Password:     user.Password,
+		ExpiresAt:    user.ExpiresAt,
+		RefreshToken: user.RefreshToken,
+		Red:          true,
 	}
 	dbStructure.Users[id] = updatedUser
 	db.writeDB(dbStructure)

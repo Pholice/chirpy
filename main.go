@@ -13,6 +13,7 @@ type apiConfig struct {
 	fileserverHits int
 	DB             *database.DB
 	Secret         string
+	Polka          string
 }
 
 func (cfg *apiConfig) middlewareMetricsInc(next http.Handler) http.Handler {
@@ -25,6 +26,7 @@ func (cfg *apiConfig) middlewareMetricsInc(next http.Handler) http.Handler {
 func main() {
 	godotenv.Load()
 	jwtSecret := os.Getenv("JWT_SECRET")
+	polkaKey := os.Getenv("POLKA_KEY")
 	serveMux := http.NewServeMux()
 	fileServer := http.FileServer(http.Dir("./"))
 	db, err := database.NewDB("./database.json")
@@ -35,6 +37,7 @@ func main() {
 		fileserverHits: 0,
 		DB:             db,
 		Secret:         jwtSecret,
+		Polka:          polkaKey,
 	}
 
 	serveMux.Handle("/app/*", apiCfg.middlewareMetricsInc(http.StripPrefix("/app", fileServer)))
@@ -48,6 +51,7 @@ func main() {
 	serveMux.Handle("POST /api/users", http.HandlerFunc(apiCfg.createUser))
 	serveMux.Handle("POST /api/refresh", http.HandlerFunc(apiCfg.refresh))
 	serveMux.Handle("POST /api/revoke", http.HandlerFunc(apiCfg.revoke))
+	serveMux.Handle("POST /api/polka/webhooks", http.HandlerFunc(apiCfg.webhooks))
 	serveMux.Handle("PUT /api/users", http.HandlerFunc(apiCfg.updateUser))
 	serveMux.Handle("DELETE /api/chirps/{chirpID}", http.HandlerFunc(apiCfg.deleteChirp))
 	server := http.Server{
