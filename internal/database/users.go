@@ -1,15 +1,20 @@
 package database
 
 import (
+	"crypto/rand"
+	"encoding/hex"
 	"errors"
+	"time"
 
 	"golang.org/x/crypto/bcrypt"
 )
 
 type User struct {
-	ID       int    `json:"id"`
-	Email    string `json:"email"`
-	Password []byte `json:"password"`
+	ID           int       `json:"id"`
+	Email        string    `json:"email"`
+	Password     []byte    `json:"password"`
+	ExpiresAt    time.Time `json:"expire"`
+	RefreshToken string    `json:"token"`
 }
 
 func (db *DB) CreateUser(email string, password string) (User, error) {
@@ -29,18 +34,31 @@ func (db *DB) CreateUser(email string, password string) (User, error) {
 			return User{}, errors.New("USER ALREADY EXISTS")
 		}
 	}
-
+	refresh, expires, err := generateRefresh()
+	if err != nil {
+		return User{}, errors.New("COULD NOT GENERATE REFRESH TOKEN")
+	}
 	newUser := User{
-		ID:       id,
-		Email:    email,
-		Password: hashedPW,
+		ID:           id,
+		Email:        email,
+		Password:     hashedPW,
+		ExpiresAt:    expires,
+		RefreshToken: refresh,
 	}
 	dbStructure.Users[id] = newUser
+
+	refreshToken := RefreshToken{
+		UserID:    id,
+		Token:     refresh,
+		ExpiresAt: time.Now().Add(time.Hour),
+	}
+
+	dbStructure.RefreshTokens[refresh] = refreshToken
 	err = db.writeDB(dbStructure)
 	if err != nil {
 		return User{}, nil
 	}
-	return User{ID: newUser.ID, Email: newUser.Email}, nil
+	return User{ID: newUser.ID, Email: newUser.Email, RefreshToken: refresh}, nil
 }
 
 func (db *DB) GetUsers() ([]User, error) {
@@ -57,13 +75,27 @@ func (db *DB) GetUsers() ([]User, error) {
 	return users, nil
 }
 
-func (db *DB) GetUser(email string) (User, error) {
+func (db *DB) GetUserEmail(email string) (User, error) {
 	dbStructure, err := db.loadDB()
 	if err != nil {
 		return User{}, errors.New("COULD NOT LOAD DB")
 	}
 	for _, user := range dbStructure.Users {
 		if user.Email == email {
+			return user, nil
+		}
+	}
+	// user, ok := dbStructure.Users[id]
+	return User{}, errors.New("COULD NOT FIND USER")
+}
+
+func (db *DB) GetUserID(id int) (User, error) {
+	dbStructure, err := db.loadDB()
+	if err != nil {
+		return User{}, errors.New("COULD NOT LOAD DB")
+	}
+	for _, user := range dbStructure.Users {
+		if user.ID == id {
 			return user, nil
 		}
 	}
@@ -88,4 +120,16 @@ func (db *DB) UpdateUser(id int, email string, password string) (User, error) {
 	dbStructure.Users[id] = updatedUser
 	db.writeDB(dbStructure)
 	return updatedUser, nil
+}
+
+func generateRefresh() (string, time.Time, error) {
+	length := 256
+	lengthByte := make([]byte, length)
+	_, err := rand.Read(lengthByte)
+	if err != nil {
+		return "", time.Now(), err
+	}
+	expires := time.Now().UTC().Add(time.Hour * 1440)
+	refreshHex := hex.EncodeToString(lengthByte)
+	return refreshHex, expires, nil
 }

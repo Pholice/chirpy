@@ -41,12 +41,13 @@ func main() {
 	serveMux.Handle("GET /api/healthz", http.HandlerFunc(apiCfg.healthz))
 	serveMux.Handle("GET /admin/metrics", http.HandlerFunc(apiCfg.metrics))
 	serveMux.Handle("GET /api/reset", http.HandlerFunc(apiCfg.reset))
-	serveMux.Handle("POST /api/chirps", http.HandlerFunc(apiCfg.createChirp))
-	serveMux.Handle("POST /api/users", http.HandlerFunc(apiCfg.createUser))
-	serveMux.Handle("PUT /api/users", http.HandlerFunc(apiCfg.updateUser))
-	serveMux.Handle("POST /api/login", http.HandlerFunc(apiCfg.login))
 	serveMux.Handle("GET /api/chirps/{chirpID}", http.HandlerFunc(apiCfg.getChirp))
-
+	serveMux.Handle("POST /api/chirps", http.HandlerFunc(apiCfg.createChirp))
+	serveMux.Handle("POST /api/login", http.HandlerFunc(apiCfg.login))
+	serveMux.Handle("POST /api/users", http.HandlerFunc(apiCfg.createUser))
+	serveMux.Handle("POST /api/refresh", http.HandlerFunc(apiCfg.refresh))
+	serveMux.Handle("POST /api/revoke", http.HandlerFunc(apiCfg.revoke))
+	serveMux.Handle("PUT /api/users", http.HandlerFunc(apiCfg.updateUser))
 	server := http.Server{
 		Addr:    ":8080",
 		Handler: serveMux,

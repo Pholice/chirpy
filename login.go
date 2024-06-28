@@ -8,9 +8,10 @@ import (
 )
 
 type ResponseUser struct {
-	ID    int    `json:"id"`
-	Email string `json:"email"`
-	Token string `json:"token"`
+	ID      int    `json:"id"`
+	Email   string `json:"email"`
+	Token   string `json:"token"`
+	Refresh string `json:"refresh_token"`
 }
 
 func (cfg *apiConfig) login(w http.ResponseWriter, r *http.Request) {
@@ -20,7 +21,7 @@ func (cfg *apiConfig) login(w http.ResponseWriter, r *http.Request) {
 		return // Ensure we return after responding
 	}
 
-	user, err := cfg.DB.GetUser(reqBody.Email)
+	user, err := cfg.DB.GetUserEmail(reqBody.Email)
 	if err != nil {
 		respondWithError(w, http.StatusUnauthorized, "Could not find user")
 		return // Ensure we return after responding
@@ -39,9 +40,10 @@ func (cfg *apiConfig) login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response := ResponseUser{
-		ID:    user.ID,
-		Email: user.Email,
-		Token: token,
+		ID:      user.ID,
+		Email:   user.Email,
+		Token:   token,
+		Refresh: user.RefreshToken,
 	}
 	respondWithJSON(w, http.StatusOK, response) // Correctly send the final response
 }

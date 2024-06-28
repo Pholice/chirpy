@@ -10,6 +10,10 @@ type RequestUser struct {
 	Email    string `json:"email"`
 	Expire   int    `json:"expires_in_seconds"`
 }
+type payload struct {
+	ID    int    `json:"id"`
+	Email string `json:"email"`
+}
 
 func (cfg *apiConfig) createUser(w http.ResponseWriter, r *http.Request) {
 	var reqBody RequestUser
@@ -20,6 +24,12 @@ func (cfg *apiConfig) createUser(w http.ResponseWriter, r *http.Request) {
 	user, err := cfg.DB.CreateUser(reqBody.Email, reqBody.Password)
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "Couldn't create user")
+		return
 	}
-	respondWithJSON(w, http.StatusCreated, user)
+
+	response := payload{
+		ID:    user.ID,
+		Email: user.Email,
+	}
+	respondWithJSON(w, http.StatusCreated, response)
 }

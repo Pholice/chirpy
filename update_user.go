@@ -3,47 +3,17 @@ package main
 import (
 	"encoding/json"
 	"net/http"
-	"strconv"
-	"strings"
-
-	"github.com/golang-jwt/jwt/v5"
 )
 
 func (cfg *apiConfig) updateUser(w http.ResponseWriter, r *http.Request) {
-	authHeader := r.Header.Get("Authorization")
-	tokenString := ""
-	if strings.HasPrefix(authHeader, "Bearer ") {
-		tokenString = authHeader[7:]
-	}
-	claimsStruct := jwt.RegisteredClaims{}
-	token, err := jwt.ParseWithClaims(
-		tokenString,
-		&claimsStruct,
-		func(token *jwt.Token) (interface{}, error) { return []byte(cfg.Secret), nil },
-	)
+	tokenString, err := getBearerToken(r)
 	if err != nil {
-		respondWithError(w, http.StatusUnauthorized, "Could not parse token")
+		respondWithError(w, http.StatusBadRequest, "Could not get token")
 		return
 	}
-
-	userIDString, err := token.Claims.GetSubject()
+	userIDInt, err := cfg.verifyJWT(tokenString)
 	if err != nil {
-		respondWithError(w, http.StatusUnauthorized, "Could not get subject")
-		return
-	}
-
-	issuer, err := token.Claims.GetIssuer()
-	if err != nil {
-		respondWithError(w, http.StatusUnauthorized, "Could not get issuer")
-		return
-	}
-	if issuer != string("chirpy") {
-		respondWithError(w, http.StatusUnauthorized, "Invalid ussuer")
-		return
-	}
-	userIDInt, err := strconv.Atoi(userIDString)
-	if err != nil {
-		respondWithError(w, http.StatusUnauthorized, "Could not convert id to int")
+		respondWithError(w, http.StatusUnauthorized, "Couldn't create user")
 		return
 	}
 
@@ -57,5 +27,9 @@ func (cfg *apiConfig) updateUser(w http.ResponseWriter, r *http.Request) {
 		respondWithError(w, http.StatusInternalServerError, "Couldn't create user")
 		return
 	}
-	respondWithJSON(w, http.StatusOK, user)
+	response := payload{
+		ID:    user.ID,
+		Email: user.Email,
+	}
+	respondWithJSON(w, http.StatusOK, response)
 }
