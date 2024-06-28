@@ -31,6 +31,20 @@ func filter(words []string) string {
 
 func (cfg *apiConfig) createChirp(w http.ResponseWriter, r *http.Request) {
 	var reqBody RequestChirp
+	tokenString, err := getBearerToken(r)
+	if err != nil {
+		respondWithError(w, http.StatusBadRequest, "Bad token format")
+	}
+	userIDInt, err := cfg.verifyJWT(tokenString)
+	if err != nil {
+		respondWithError(w, http.StatusBadRequest, "Could not verify JWT token")
+		return
+	}
+	user, err := cfg.DB.GetUserID(userIDInt)
+	if err != nil {
+		respondWithError(w, http.StatusBadRequest, "Could not find user")
+		return
+	}
 	if err := json.NewDecoder(r.Body).Decode(&reqBody); err != nil {
 		respondWithError(w, http.StatusBadRequest, "Invalid request body")
 		return
@@ -41,7 +55,7 @@ func (cfg *apiConfig) createChirp(w http.ResponseWriter, r *http.Request) {
 	}
 
 	clean := filter(strings.Split(reqBody.Body, " "))
-	chirp, err := cfg.DB.CreateChirp(clean)
+	chirp, err := cfg.DB.CreateChirp(clean, user.ID)
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "Couldn't create chirp")
 	}

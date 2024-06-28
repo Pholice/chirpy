@@ -13,7 +13,7 @@ func (cfg *apiConfig) updateUser(w http.ResponseWriter, r *http.Request) {
 	}
 	userIDInt, err := cfg.verifyJWT(tokenString)
 	if err != nil {
-		respondWithError(w, http.StatusUnauthorized, "Couldn't create user")
+		respondWithError(w, http.StatusUnauthorized, "Couldn't find user")
 		return
 	}
 

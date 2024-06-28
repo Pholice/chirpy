@@ -19,3 +19,11 @@ func (cfg *apiConfig) getChirp(w http.ResponseWriter, r *http.Request) {
 	}
 	respondWithJSON(w, http.StatusOK, chirp)
 }
+
+func (cfg *apiConfig) getAllChirps(w http.ResponseWriter, r *http.Request) {
+	chirps, err := cfg.DB.GetChirps()
+	if err != nil {
+		respondWithError(w, http.StatusNotFound, "Could not find chirps")
+	}
+	respondWithJSON(w, http.StatusOK, chirps)
+}

@@ -70,6 +70,7 @@ func getBearerToken(r *http.Request) (string, error) {
 	tokenString := ""
 	if strings.HasPrefix(authHeader, "Bearer ") {
 		tokenString = authHeader[7:]
+		return tokenString, nil
 	}
-	return tokenString, nil
+	return tokenString, errors.New("COULD NOT GET BEARER TOKEN")
 }
